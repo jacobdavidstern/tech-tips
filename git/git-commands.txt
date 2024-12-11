@@ -1,0 +1,250 @@
+:: .gitconfig
+
+[credential]
+	helper = osxkeychain
+[core] 
+	# ensure file line endings you checkout are correct for macOS (input)
+	autocrlf = input 
+	# there is a working tree, so files can be edited
+	bare = false
+	# editor set to vscode for edit, diff, merge ops
+	editor = code --wait	
+	#exclude files from repo
+	excludesfile = /Users/jacob.stern/.gitignore_global
+	# some filesystems lose the executable bit, and this tells git whether to honor
+	filemode = false 
+	# reflog is all updates chron order, while log is all refs that head pointed to 
+	logallrefupdates = true 
+	# there is a new repositoryformatversion = 1 for use with extensions, but only one is noop 
+	#https://github.com/git/git/blob/00a09d57eb8a041e6a6b0470c53533719c049bab/Documentation/technical/repository-version.txt
+	repositoryformatversion = 0 
+	# windows sets this to true 
+	# file systems that do not support symlinks will have them converted to text files
+	symlinks = false 
+	# File === file
+	ignorecase = false	
+[user]
+	name = jacobdavidstern
+	email = 191296524+jacobdavidstern@users.noreply.github.com
+[init]
+	defaultbranch = master
+[remote "origin"]
+	remote = origin  
+[branch "master"]  
+	merge = refs/heads/master
+[diff]
+	tool = vscode
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
+[merge]
+	tool = vscode
+[mergetool "vscode"]
+[alias]
+	# see `git help log` for detailed help.
+	lol = log -P -n5 --graph --pretty=format:'%C(yellow)%h%x09%Creset%C(cyan)%C(bold)%cd%Creset %C(green)%cn%Creset %C(green)%Creset %s' --date=default
+	# my awesome git log replacement using built-in standards (not piping to pager)
+	lol2 = log -P -n5 --oneline --graph --decorate
+	# shows branches and their last commits
+	lol3 = log --all --graph --decorate --oneline --simplify-by-decoration
+# Note: git --no-pager alias in ~/.aliases
+
+:: Git Log Aliases 
+# see `git help log` for detailed help.
+#   %h: abbreviated commit hash
+#   %d: ref names, like the --decorate option of git-log(1)
+#   %cn: commiter name
+#   %ce: committer email
+#   %cr: committer date, relative
+#   %ci: committer date, ISO 8601-like format
+#   %an: author name
+#   %ae: author email
+#   %ar: author date, relative
+#   %ai: author date, ISO 8601-like format
+#   %s: subject
+
+:: Check config
+git config -l
+git config --global --edit
+git config --global init.defaultBranch master
+git config --global color.ui auto
+echo .DS_Store >> ~/.gitignore_global
+git config --global core.excludesfile ~/.gitignore_global
+git config --global core.autocrlf input
+
+:: Check what git thinks is the value of a key
+git config <key>
+:: Renormalize EOL of tracked files (implies -u, --update)
+git --renormalize
+
+:: Create New SSH key
+Private key ~/.ssh/id_ed25519-jds should never be shared and a strong passphrase used
+Public key ~/.ssh/id_ed25519-jds.pub is meant to be shared
+Limit SSH private key access
+chmod 600 ~/.ssh/id_ed25519-jds
+For reference copy the following into ssh-key-fingerprint-randomart-image-jds.txt 
+---
+/Users/jacob.stern/code
+$ ssh-keygen -t ed25519 -C "191296524+jacobdavidstern@users.noreply.github.com"
+Generating public/private ed25519 key pair.
+Enter file in which to save the key (/Users/jacob.stern/.ssh/id_ed25519): /Users/jacob.stern/.ssh/id_ed25519-jds
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /Users/jacob.stern/.ssh/id_ed25519-jds
+Your public key has been saved in /Users/jacob.stern/.ssh/id_ed25519-jds.pub
+The key fingerprint is:
+SHA256:vmYXVipIjH04+deDhNZmKH6og1WAIl9Uo3VCcxbk8qY 191296524+jacobdavidstern@users.noreply.github.com
+The key's randomart image is:
++--[ED25519 256]--+
+|   o.oB.*.       |
+|o . oo O         |
+|.o ..=.o.+       |
+|  . . Xo= = .    |
+|     + OS+ =     |
+|    . +++ * o    |
+|   o .E..+ . .   |
+|  . o   o..      |
+|     . o..       |
++----[SHA256]-----+
+---
+Add SSH key:
+eval "$(ssh-agent -s)"
+  ssh-add ~/.ssh/id_ed25519-jds
+  pbcopy < ~/.ssh/id_ed25519-jds.pub (this line copies contents to clipboard)
+Add public key to GitHub (twice) Authentication and Signing > Settings > SSH and GPG keys:
+(auth) 191296524+jacobdavidstern@users.noreply.github.com
+(sign) 191296524+jacobdavidstern@users.noreply.github.com
+Update SSH Config ~/.ssh/config:
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519-jds
+Verify New SSH being used:
+ssh -T git@github.com
+Update Remote to use SSH (if needed):
+git remote set-url origin git@github.com:jacobdavidstern/codecademy.git
+Troubleshooting:
+git remote -v
+
+:: Retire Old SSH Key
+Create a backup copy of ~/.ssh/id_ed25519 and id_ed25519.pub (adjust filename)
+Remove SSH key from GitHub: Settings > SSH and GPG keys 
+Remove SSH key from ssh-agent
+ ssh-add -d ~/.ssh/id_ed25519
+Remove SSH key file from local machine (the one you backed up)
+Ensure your ~/.gitconfig is updated in name and email
+
+:: Create New Repo (SSH)
+visit github.com, create repos 
+clone repos locally and add files
+git init
+git checkout -b master
+git add -A
+git commit -m "initial commit"
+git remote add origin git@github.com:jacobdavidstern/<repo_name>.git
+git remote set-url origin git@github.com:jacobdavidstern/<repo_name>.git
+git push -u origin master
+
+:: Adding or Staging Files
+git add . (stages new files and existing modified files, without deletions)
+git add -u (stages currently tracked files which have been modified and removes those since deleted)
+git add -A (performs both steps, that is, stages your entire directory as it is.)
+git commit -m "commit message"
+
+:: See information about a particular remote
+git remote show <remote>
+
+# Clean Up Repo
+git reset --hard <commit>             # reset commit index
+git reflog expire --expire=all --all  # clear reflog
+git gc --prune=now                    # garbage collection
+
+# Discard uncomitted changes
+git reset --hard HEAD [Makes working directory and stage match the most recent commit (also called HEAD), effectively obliterating all tracked uncommitted changes.]
+Note: Dry run git clean first to confirm files and folders to be removed, as cannot (easily) undo 
+git clean -n -d -f [Remove untracked files and folders, first confirm files and folders to be removed]
+
+:: Change password: 
+git config --global --unset user.password (Then run your git command to force creating new one)
+
+:: Clone from GitHub (SSH)
+git clone git@github.com:jacobdavidstern/<repo-name>.git
+
+:: Revert latest commit
+git revert HEAD
+:: revert the latest commit, skipping the commit message editor:
+git revert HEAD --no-edit
+:: Revert last 2 commits
+git revert HEAD~1
+
+:: Reset last commit
+git reset --soft HEAD~1
+
+:: Git log
+git log shows commits, <SHA> is a git commit ID; 
+git log --stat shows stats about file names and line changes. 
+git log --oneline shows a condensed list of changes.
+git log --no-pager shows results with no pager
+git log --graph --all --decorate --oneline shows a concise graph
+git --no-pager log --graph --pretty=format:"%C(yellow)%h%x09%Creset%C(cyan)%C(bold)%cd%Creset %C(green)%cn%Creset %C(green)%Creset %s" --date=default
+
+:: Intermediate Git
+git revert <SHA> Creates a new commit that’s the opposite (or inverse) of the given SHA
+git commit --amend or git commit --amend -m "commit message"
+Will update and replace the most recent commit with a new commit that combines any staged changes with the contents of the previous commit. With nothing currently staged, this just rewrites the previous commit message.
+git rebase -i <SHA> 
+merge
+reword
+rebase
+fixup
+squash
+pick
+autosquash
+
+:: Branching 
+:: note: git branch does not change active branch, git checkout changes active branch.
+List all local branches
+  git branch
+List all remote branches
+  git branch -r
+List all branches
+  git branch -a
+Detailed branch info
+  git branch -vv
+  git branch -vva
+To create custom branch (does not change active branch)
+  git branch master
+To switch into branchname
+  git checkout master
+Create and switch branch
+  git checkout -b master
+
+:: Rename remote
+Confirm the name of your current remote:
+  git remote -v
+Change name of current remote repo named beanstalk, future name origin:
+  git remote rename beanstalk origin
+Verify remote changed from “beanstalk” to “origin”:
+  git remote -v
+  origin https://somename.github.com/reponame.git (fetch)
+  origin https://somename.github.com/reponame.git (push)
+
+:: Empty Folders
+Unofficially, for Git to recognize an empty directory, put a file named .gitkeep in it.
+copy nul > .gitkeep
+
+:: Stash
+To prevent losing stashes each time you git stash pop, do git stash apply instead; It does the same thing other than removing the reference to the applied stash
+
+:: Content info
+git count-objects -vH
+
+:: Clean
+Remove files and folders untracked by git
+Note: may be undoable and makes hard filesystem deletions
+git clean -n [Dry run]
+git clean -i [Interactive]
+git clean -f [Force, required as safety measure]
+git clean -d [Recurse into untracked folders]
+git clean -x [Remove not only untracked files, but also ignored]
+git clean -X [Remove only ignored files]
+
